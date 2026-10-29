@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Virtuo Casino | Next Gen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter','sans-serif'], mono: ['Orbitron','monospace'] },
+                    colors: {
+                        dark: { 900:'#0B0E14', 800:'#151A23', 700:'#1E2532', 600:'#2A3444' },
+                        brand: { 500:'#00E5FF', 600:'#00B8D4' },
+                        accent: '#FF2E63'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+        body { background-color:#0B0E14; color:#E2E8F0; overscroll-behavior:none; font-family:'Inter',sans-serif; }
+        .mono { font-family:'Orbitron',monospace; }
+        .glass { background:rgba(30,37,50,.7); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,.05); }
+        .panel { background:rgba(21,26,35,.9); border:1px solid rgba(0,229,255,.1); }
+        .btn-primary { background:linear-gradient(135deg,#00E5FF,#00B8D4); color:#0B0E14; font-weight:700; transition:all .2s; box-shadow:0 4px 20px rgba(0,229,255,.25); }
+        .btn-primary:active { transform:scale(.96); }
+        .btn-danger { background:linear-gradient(135deg,#FF2E63,#D92452); color:#fff; font-weight:700; transition:all .2s; box-shadow:0 4px 20px rgba(255,46,99,.25); }
+        .btn-danger:active { transform:scale(.96); }
+        .btn-ghost { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); transition:all .2s; }
+        .btn-ghost:active { transform:scale(.96); background:rgba(255,255,255,.12); }
+        .hide-scrollbar::-webkit-scrollbar { display:none; }
+        .hide-scrollbar { scrollbar-width:none; }
+        .cell { transition:all .2s; cursor:pointer; }
+        .cell:active { transform:scale(.88); }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+        input[type=number] { -moz-appearance:textfield; }
+
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+        .animate-float { animation:float 3s ease-in-out infinite; }
+        @keyframes pulse-glow { 0%,100%{box-shadow:0 0 0 0 rgba(0,229,255,.4)} 50%{box-shadow:0 0 30px 6px rgba(0,229,255,.25)} }
+        .pulse-glow { animation:pulse-glow 2s infinite; }
+        @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+        .shimmer { background:linear-gradient(90deg,#1E2532 25%,#2A3444 50%,#1E2532 75%); background-size:200% 100%; animation:shimmer 2.5s infinite; }
+        @keyframes rise { from{opacity:0; transform:translateY(20px)} to{opacity:1; transform:translateY(0)} }
+        .rise { animation:rise .35s ease both; }
+        @keyframes pop { 0%{transform:scale(.6); opacity:0} 60%{transform:scale(1.1)} 100%{transform:scale(1); opacity:1} }
+        .pop { animation:pop .3s ease both; }
+        @keyframes spin-orbit { to{transform:rotate(360deg)} }
+        .slow-spin { animation:spin-orbit 8s linear infinite; }
+        @keyframes gradient-move { 0%,100%{transform:translate(0,0)} 50%{transform:translate(30px,-20px)} }
+        .orb { position:absolute; border-radius:50%; filter:blur(90px); opacity:.25; pointer-events:none; }
+        .orb-1 { background:#00E5FF; width:300px; height:300px; top:-80px; left:-80px; animation:gradient-move 14s ease-in-out infinite; }
+        .orb-2 { background:#8B5CF6; width:340px; height:340px; bottom:-100px; right:-100px; animation:gradient-move 18s ease-in-out infinite reverse; }
+        .orb-3 { background:#FF2E63; width:220px; height:220px; top:40%; left:60%; opacity:.12; animation:gradient-move 20s ease-in-out infinite; }
+
+        .tab-active { color:#00E5FF !important; border-bottom:2px solid #00E5FF !important; }
+        .game-card { transition:all .25s; }
+        .game-card:hover { transform:translateY(-6px); border-color:rgba(0,229,255,.5) !important; box-shadow:0 20px 40px -20px rgba(0,229,255,.35); }
+
+        .nav-btn { transition:all .2s; }
+        .nav-btn.active { color:#00E5FF; }
+
+        .toast { animation:pop .25s ease; }
+        @keyframes confetti-fall { to{transform:translateY(110vh) rotate(720deg); opacity:0} }
+        .confetti { position:fixed; top:-20px; z-index:100; pointer-events:none; animation:confetti-fall linear forwards; }
+
+        .bet-chip { transition:all .15s; }
+        .bet-chip.selected { background:linear-gradient(135deg,#00E5FF,#00B8D4) !important; color:#0B0E14 !important; font-weight:700; }
+        
+        .crash-canvas-container {
+            position: relative;
+            width: 100%;
+            min-height: 230px;
+        }
+        .crash-canvas-container canvas {
+            width: 100% !important;
+            height: 230px !important;
+            display: block;
+        }
+        .crash-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <div class="fixed inset-0 pointer-events-none overflow-hidden">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-900 overflow-y-auto">
+        <div class="panel w-full max-w-md p-8 rounded-3xl rise relative">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-3xl shadow-lg shadow-brand-500/30 animate-float"><i class="fas fa-dice text-white"></i></div>
+                <h1 class="text-4xl font-black mono text-transparent bg-clip-text bg-gradient-to-r from-brand-500 to-purple-500">VIRTUO</h1>
+                <p class="text-slate-400 text-sm mt-2">Next Generation Virtual Casino</p>
+                <p class="text-[11px] text-slate-600 mt-1">Игровые виртуальные кредиты • Демо-режим</p>
+            </div>
+            <div class="flex rounded-xl bg-dark-800 p-1 mb-6">
+                <button id="tab-login-btn" onclick="Auth.tab('login')" class="flex-1 py-2.5 rounded-lg font-bold text-sm tab-active transition">Вход</button>
+                <button id="tab-register-btn" onclick="Auth.tab('register')" class="flex-1 py-2.5 rounded-lg font-bold text-sm text-slate-500 transition">Регистрация</button>
+            </div>
+            <div id="login-form">
+                <input type="text" id="login-username" placeholder="Имя пользователя" autocomplete="username" class="w-full bg-dark-800 border border-slate-700 rounded-xl px-4 py-3 mb-3 focus:border-brand-500 focus:outline-none transition">
+                <input type="password" id="login-password" placeholder="Пароль" autocomplete="current-password" class="w-full bg-dark-800 border border-slate-700 rounded-xl px-4 py-3 mb-4 focus:border-brand-500 focus:outline-none transition">
+                <button onclick="Auth.login()" class="w-full btn-primary py-3.5 rounded-xl text-lg">Войти</button>
+            </div>
+            <div id="register-form" class="hidden">
+                <input type="text" id="reg-username" placeholder="Придумайте ник" autocomplete="off" class="w-full bg-dark-800 border border-slate-700 rounded-xl px-4 py-3 mb-3 focus:border-brand-500 focus:outline-none transition">
+                <input type="password" id="reg-password" placeholder="Пароль (мин. 6 символов)" autocomplete="new-password" class="w-full bg-dark-800 border border-slate-700 rounded-xl px-4 py-3 mb-3 focus:border-brand-500 focus:outline-none transition">
+                <input type="password" id="reg-password2" placeholder="Повторите пароль" autocomplete="new-password" class="w-full bg-dark-800 border border-slate-700 rounded-xl px-4 py-3 mb-4 focus:border-brand-500 focus:outline-none transition">
+                <button onclick="Auth.register()" class="w-full btn-primary py-3.5 rounded-xl text-lg">Создать аккаунт</button>
+            </div>
+            <p class="text-center text-slate-500 text-xs mt-5">Создавая аккаунт, вы принимаете правила проекта.<br>Все средства виртуальные и не имеют реальной ценности.</p>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden flex-1 flex flex-col h-full relative">
+        <header class="glass px-4 py-3 flex justify-between items-center z-40 sticky top-0">
+            <div class="flex items-center gap-3">
+                <div id="user-avatar" class="w-10 h-10 rounded-full flex items-center justify-center font-black text-dark-900 text-lg shadow-lg">U</div>
+                <div>
+                    <div class="font-bold text-sm" id="header-username">User</div>
+                    <div class="text-xs text-brand-500 mono" id="header-balance">0.00 VC</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="app.claimDaily()" id="daily-btn" class="px-3 py-1.5 rounded-full text-xs font-bold bg-yellow-500/15 text-yellow-400 border border-yellow-500/30 hover:bg-yellow-500/25 transition">
+                    <i class="fas fa-gift mr-1"></i><span id="daily-label">Бонус</span>
+                </button>
+                <button onclick="app.openModal()" class="w-10 h-10 rounded-full glass flex items-center justify-center text-slate-300 hover:text-white transition">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </header>
+
+        <main id="content-area" class="flex-1 overflow-y-auto hide-scrollbar p-4 pb-28 max-w-6xl w-full mx-auto"></main>
+
+        <nav class="glass border-t border-slate-800 px-4 py-2 flex justify-around items-center z-40 fixed bottom-0 w-full max-w-6xl left-1/2 -translate-x-1/2 rounded-t-2xl sm:rounded-t-3xl">
+            <button onclick="app.showView('lobby')" class="nav-btn active flex flex-col items-center gap-0.5 text-brand-500" data-view="lobby">
+                <i class="fas fa-gamepad text-xl"></i><span class="text-[10px] font-bold">Игры</span>
+            </button>
+            <button onclick="app.showView('leaderboard')" class="nav-btn flex flex-col items-center gap-0.5 text-slate-500" data-view="leaderboard">
+                <i class="fas fa-trophy text-xl"></i><span class="text-[10px] font-bold">Топ</span>
+            </button>
+            <button onclick="app.showView('stats')" class="nav-btn flex flex-col items-center gap-0.5 text-slate-500" data-view="stats">
+                <i class="fas fa-chart-line text-xl"></i><span class="text-[10px] font-bold">Стата</span>
+            </button>
+            <button onclick="app.showView('profile')" class="nav-btn flex flex-col items-center gap-0.5 text-slate-500" data-view="profile">
+                <i class="fas fa-user text-xl"></i><span class="text-[10px] font-bold">Профиль</span>
+            </button>
+        </nav>
+    </div>
+
+    <div id="modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+        <div class="panel w-full max-w-md rounded-2xl p-6 rise max-h-[85vh] overflow-y-auto hide-scrollbar">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Информация и настройки</h3>
+                <button onclick="app.closeModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div class="p-4 rounded-xl bg-dark-800 border border-slate-700">
+                    <div class="flex items-center gap-3 mb-2"><i class="fas fa-shield-alt text-brand-500"></i><span class="font-bold text-sm">Provably Fair (Античит)</span></div>
+                    <p class="text-xs text-slate-400 leading-relaxed">Перед каждым раундом генерируется Server Seed (SHA-256). Хэш публикуется до игры, а после — раскрывается исходный сид.</p>
+                </div>
+                <div class="p-4 rounded-xl bg-dark-800 border border-slate-700">
+                    <div class="flex items-center gap-3 mb-2"><i class="fas fa-volume-up text-purple-400"></i><span class="font-bold text-sm">Звук</span></div>
+                    <button onclick="Sound.toggle()" class="w-full btn-ghost py-2.5 rounded-xl text-sm font-bold" id="sound-btn">Звук: Вкл</button>
+                </div>
+                <a href="https://quardo-corporation.netlify.app" target="_blank" class="block p-4 rounded-xl bg-indigo-600/20 border border-indigo-500/30 hover:bg-indigo-600/30 transition group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white group-hover:scale-110 transition"><i class="fas fa-code"></i></div>
+                        <div>
+                            <div class="font-bold text-indigo-300">Разработчики</div>
+                            <div class="text-xs text-indigo-400/70">Quardo Corporation</div>
+                        </div>
+                        <i class="fas fa-external-link-alt ml-auto text-indigo-400"></i>
+                    </div>
+                </a>
+                <button onclick="app.resetData()" class="w-full p-3 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition text-sm font-bold">
+                    <i class="fas fa-trash-alt mr-2"></i> Сбросить все данные
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const $ = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
+    const fmt = (n, d=2) => Number(n).toLocaleString('ru-RU',{minimumFractionDigits:d, maximumFractionDigits:d});
+    const fmtInt = n => Math.floor(Number(n)).toLocaleString('ru-RU');
+    const rnd = (a,b) => Math.random()*(b-a)+a;
+    const rndInt = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+    const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+    const uid = () => Math.random().toString(36).slice(2,10);
+    function hashStr(s){ let h=5381; for(let i=0;i<s.length;i++) h=((h<<5)+h+s.charCodeAt(i))|0; return (h>>>0).toString(36); }
+
+    const AVATAR_COLORS = ['#00E5FF','#8B5CF6','#FF2E63','#10B981','#F59E0B','#EC4899','#3B82F6','#F97316','#14B8A6','#EF4444'];
+    function avatarStyle(name){
+        let h=0; for(let i=0;i<name.length;i++) h=(h*31+name.charCodeAt(i))>>>0;
+        const c = AVATAR_COLORS[h%AVATAR_COLORS.length];
+        const c2 = AVATAR_COLORS[(h>>3)%AVATAR_COLORS.length];
+        return `background:linear-gradient(135deg,${c},${c2})`;
+    }
+
+    const Sound = {
+        enabled: true, ctx: null,
+        init(){ if(!this.ctx){ try{ this.ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } },
+        tone(freq, dur, type='sine', vol=0.15){
+            if(!this.enabled) return; this.init(); if(!this.ctx) return;
+            const o=this.ctx.createOscillator(), g=this.ctx.createGain();
+            o.type=type; o.frequency.value=freq; g.gain.value=vol;
+            o.connect(g); g.connect(this.ctx.destination);
+            g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime+dur);
+            o.start(); o.stop(this.ctx.currentTime+dur);
+        },
+        click(){ this.tone(600,.08,'sine',.1); },
+        win(){ this.tone(523,.12,'sine',.15); setTimeout(()=>this.tone(659,.12,'sine',.15),90); setTimeout(()=>this.tone(784,.18,'sine',.15),180); },
+        lose(){ this.tone(220,.25,'sawtooth',.12); },
+        crash(){ this.tone(120,.4,'sawtooth',.18); this.tone(60,.5,'sawtooth',.12); },
+        tick(){ this.tone(880,.05,'square',.06); },
+        toggle(){ this.enabled=!this.enabled; $('#sound-btn').textContent = 'Звук: '+(this.enabled?'Вкл':'Выкл'); }
+    };
+
+    function toast(msg, type='info'){
+        const colors = { info:'border-brand-500/40 text-brand-500', success:'border-emerald-500/40 text-emerald-400', error:'border-red-500/40 text-red-400', gold:'border-yellow-500/40 text-yellow-400' };
+        const icons = { info:'fa-info-circle', success:'fa-check-circle', error:'fa-exclamation-circle', gold:'fa-gift' };
+        const el = document.createElement('div');
+        el.className = `toast fixed top-20 left-1/2 -translate-x-1/2 z-[90] glass rounded-xl px-5 py-3 flex items-center gap-2 border ${colors[type]||colors.info} shadow-2xl max-w-[90vw]`;
+        el.innerHTML = `<i class="fas ${icons[type]||icons.info}"></i><span class="text-sm font-bold">${msg}</span>`;
+        document.body.appendChild(el);
+        setTimeout(()=>{ el.style.transition='all .4s'; el.style.opacity='0'; el.style.transform='translate(-50%,-20px)'; setTimeout(()=>el.remove(),400); }, 2600);
+    }
+
+    function confetti(){
+        const colors=['#00E5FF','#8B5CF6','#FF2E63','#F59E0B','#10B981','#EC4899','#fff'];
+        for(let i=0;i<80;i++){
+            const c=document.createElement('div');
+            c.className='confetti';
+            c.style.left=Math.random()*100+'vw';
+            c.style.background=colors[rndInt(0,colors.length-1)];
+            const s=rnd(6,12); c.style.width=s+'px'; c.style.height=s+'px';
+            c.style.borderRadius=Math.random()>.5?'50%':'2px';
+            c.style.animationDuration=rnd(1.5,3)+'s';
+            c.style.animationDelay=Math.random()*.4+'s';
+            document.body.appendChild(c);
+            setTimeout(()=>c.remove(),3500);
+        }
+    }
+
+    const Store = {
+        getUsers(){ return JSON.parse(localStorage.getItem('vc_users')||'[]'); },
+        setUsers(u){ localStorage.setItem('vc_users', JSON.stringify(u)); },
+        getSession(){ return JSON.parse(localStorage.getItem('vc_session')||'null'); },
+        setSession(s){ localStorage.setItem('vc_session', JSON.stringify(s)); },
+        clear(){ localStorage.removeItem('vc_users'); localStorage.removeItem('vc_session'); }
+    };
+
+    const app = {
+        user: null, currentView: 'lobby', timers: [], rafs: [],
+
+        init(){
+            const session = Store.getSession();
+            if(session){
+                const users = Store.getUsers();
+                const u = users.find(x => x.id === session.id);
+                if(u){ 
+                    this.user = u; 
+                    this.showMainApp(); 
+                    const savedView = localStorage.getItem('vc_currentView');
+                    if(savedView && savedView !== 'leaderboard') this.showView(savedView);
+                    return; 
+                }
+            }
+            $('#auth-screen').classList.remove('hidden');
+        },
+
+        login(username, password){
+            const users = Store.getUsers();
+            const u = users.find(x => x.username.toLowerCase() === username.toLowerCase());
+            if(!u) return toast('Пользователь не найден','error');
+            if(u.password !== hashStr(password)) return toast('Неверный пароль','error');
+            this.user = u;
+            Store.setSession({id:u.id});
+            this.showMainApp();
+            Sound.init();
+        },
+        register(username, password){
+            const users = Store.getUsers();
+            if(users.find(x => x.username.toLowerCase() === username.toLowerCase())) return toast('Ник уже занят','error');
+            const u = {
+                id: uid(), username, password: hashStr(password),
+                avatar: username[0].toUpperCase(), avatarStyle: avatarStyle(username),
+                balance: 10000, createdAt: Date.now(), lastBonus: 0,
+                stats: { gamesPlayed:0, wins:0, losses:0, wagered:0, profit:0, biggestWin:0, biggestMultiplier:0, perGame:{} },
+                history: [], balanceHistory: [{t:Date.now(), v:10000}]
+            };
+            users.push(u);
+            Store.setUsers(users);
+            this.user = u;
+            Store.setSession({id:u.id});
+            this.showMainApp();
+            Sound.init();
+            toast('Аккаунт создан! +10 000 VC в подарок','success');
+            confetti();
+        },
+        saveUser(){
+            if(!this.user) return;
+            const users = Store.getUsers();
+            const idx = users.findIndex(x => x.id === this.user.id);
+            if(idx !== -1){ users[idx] = this.user; Store.setUsers(users); }
+            this.updateHeader();
+        },
+        logout(){ Store.setSession(null); location.reload(); },
+        resetData(){ if(confirm('Удалить весь прогресс и все аккаунты?')){ Store.clear(); location.reload(); } },
+
+        showMainApp(){
+            $('#auth-screen').classList.add('hidden');
+            $('#main-app').classList.remove('hidden');
+            this.updateHeader();
+            const savedView = localStorage.getItem('vc_currentView') || 'lobby';
+            this.showView(savedView);
+            this.updateDailyButton();
+            Crash.ensure();
+        },
+
+        changeBalance(delta){
+            const u = this.user;
+            u.balance = Math.round((u.balance + delta)*100)/100;
+            u.balanceHistory.push({t:Date.now(), v:u.balance});
+            if(u.balanceHistory.length > 250) u.balanceHistory.shift();
+            this.saveUser();
+        },
+        recordGame(game, bet, profit, mult){
+            const u = this.user;
+            u.stats.gamesPlayed++;
+            u.stats.wagered += bet;
+            u.stats.profit += profit;
+            if(profit > 0){ u.stats.wins++; if(profit > u.stats.biggestWin) u.stats.biggestWin = Math.round(profit*100)/100; }
+            else { u.stats.losses++; }
+            if(mult && mult > (u.stats.biggestMultiplier||0)) u.stats.biggestMultiplier = Math.round(mult*100)/100;
+            u.stats.perGame[game] = (u.stats.perGame[game]||0) + 1;
+            u.history.unshift({ game, bet, profit: Math.round(profit*100)/100, mult: mult?Math.round(mult*100)/100:null, t: Date.now() });
+            if(u.history.length > 100) u.history.pop();
+            this.saveUser();
+        },
+
+        updateHeader(){
+            if(!this.user) return;
+            $('#header-username').textContent = this.user.username;
+            $('#header-balance').textContent = fmt(this.user.balance,2) + ' VC';
+            const av = $('#user-avatar');
+            av.textContent = this.user.avatar;
+            av.style = this.user.avatarStyle;
+        },
+
+        canClaimDaily(){ return Date.now() - (this.user.lastBonus||0) >= 24*60*60*1000; },
+        updateDailyButton(){
+            const lbl = $('#daily-label'); if(!lbl) return;
+            if(this.canClaimDaily()){ lbl.textContent = '+5 000'; $('#daily-btn').className = 'px-3 py-1.5 rounded-full text-xs font-bold bg-yellow-500/20 text-yellow-300 border border-yellow-500/50 pulse-glow transition'; }
+            else { lbl.textContent = this.dailyCountdown(); $('#daily-btn').className = 'px-3 py-1.5 rounded-full text-xs font-bold bg-slate-500/15 text-slate-400 border border-slate-600/40 transition'; }
+        },
+        dailyCountdown(){
+            const left = 24*60*60*1000 - (Date.now() - this.user.lastBonus);
+            const h = Math.floor(left/3600000), m = Math.floor(left%3600000/60000), s = Math.floor(left%60000/1000);
+            return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        },
+        claimDaily(){
+            if(!this.canClaimDaily()) return toast('Бонус доступен через ' + this.dailyCountdown(),'error');
+            this.user.lastBonus = Date.now();
+            this.changeBalance(5000);
+            this.saveUser();
+            this.updateDailyButton();
+            toast('Ежедневный бонус +5 000 VC!','gold');
+            confetti();
+            Sound.win();
+        },
+
+        cleanup(){
+            this.timers.forEach(t=>clearInterval(t)); this.timers=[];
+            this.rafs.forEach(r=>cancelAnimationFrame(r)); this.rafs=[];
+        },
+        showView(view){
+            this.cleanup();
+            this.currentView = view;
+            localStorage.setItem('vc_currentView', view);
+            
+            $$('.nav-btn').forEach(b => {
+                if(b.dataset.view===view){ b.classList.add('text-brand-500','active'); b.classList.remove('text-slate-500'); }
+                else { b.classList.remove('text-brand-500','active'); b.classList.add('text-slate-500'); }
+            });
+            const c = $('#content-area');
+            const map = {
+                'lobby':()=>this.renderLobby(c), 'leaderboard':()=>this.renderLeaderboard(c),
+                'stats':()=>this.renderStats(c), 'profile':()=>this.renderProfile(c),
+                'crash':()=>this.renderCrash(c), 'mines':()=>this.renderMines(c),
+                'dice':()=>this.renderDice(c), 'coin':()=>this.renderCoin(c),
+                'roulette':()=>this.renderRoulette(c), 'slots':()=>this.renderSlots(c),
+                'plinko':()=>this.renderPlinko(c), 'wheel':()=>this.renderWheel(c),
+            };
+            (map[view]||map['lobby'])();
+            c.scrollTop = 0;
+        },
+
+        renderLobby(c){
+            const games = [
+                {v:'crash', icon:'<i class="fas fa-rocket text-3xl mb-3 text-brand-500"></i>', name:'Crash', desc:'Общий онлайн-раунд', grad:'from-brand-500/20', accent:'text-brand-500', tag:'LIVE', tagColor:'bg-red-500'},
+                {v:'mines', icon:'<i class="fas fa-bomb text-3xl mb-3 text-purple-400"></i>', name:'Mines', desc:'Открывай ячейки', grad:'from-purple-500/20', accent:'text-purple-400'},
+                {v:'roulette', icon:'<i class="fas fa-dharmachakra text-3xl mb-3 text-emerald-400"></i>', name:'Рулетка', desc:'Европейская рулетка', grad:'from-emerald-500/20', accent:'text-emerald-400'},
+                {v:'slots', icon:'<i class="fas fa-gem text-3xl mb-3 text-pink-400"></i>', name:'Слоты', desc:'Классический слот', grad:'from-pink-500/20', accent:'text-pink-400'},
+                {v:'dice', icon:'<i class="fas fa-dice text-3xl mb-3 text-amber-400"></i>', name:'Dice', desc:'Больше / меньше', grad:'from-amber-500/20', accent:'text-amber-400'},
+                {v:'plinko', icon:'<i class="fas fa-circle text-3xl mb-3 text-cyan-400"></i>', name:'Plinko', desc:'Шарик по колышкам', grad:'from-cyan-500/20', accent:'text-cyan-400'},
+                {v:'wheel', icon:'<i class="fas fa-compact-disc text-3xl mb-3 text-orange-400"></i>', name:'Колесо', desc:'Крути колесо', grad:'from-orange-500/20', accent:'text-orange-400'},
+                {v:'coin', icon:'<i class="fas fa-coins text-3xl mb-3 text-slate-300"></i>', name:'Монетка', desc:'Орёл или решка', grad:'from-slate-500/20', accent:'text-slate-300'},
+            ];
+            c.innerHTML = `
+                <div class="mb-6"><h2 class="text-2xl font-black mb-1">Казино</h2><p class="text-slate-400 text-sm">Выбери игру и испытай удачу</p></div>
+                <div onclick="app.showView('crash')" class="panel rounded-2xl p-4 mb-5 cursor-pointer relative overflow-hidden hover:border-brand-500/50 transition">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="relative flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>
+                            <div><div class="font-bold">Crash — идёт раунд</div><div class="text-xs text-slate-400" id="lobby-crash-status">Загрузка...</div></div>
+                        </div>
+                        <div class="mono text-3xl font-black text-brand-500" id="lobby-crash-mult">1.00x</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    ${games.map(g=>`
+                        <div onclick="app.showView('${g.v}')" class="game-card panel p-4 rounded-2xl relative overflow-hidden cursor-pointer">
+                            <div class="absolute top-0 right-0 w-24 h-24 ${g.grad} rounded-full blur-2xl -mr-8 -mt-8"></div>
+                            ${g.tag?`<span class="absolute top-2 right-2 text-[9px] font-black ${g.tagColor} bg-dark-900/70 rounded px-1.5 py-0.5">${g.tag}</span>`:''}
+                            <div class="mb-3">${g.icon}</div>
+                            <h3 class="font-bold ${g.accent}">${g.name}</h3>
+                            <p class="text-[11px] text-slate-400 mt-1 leading-tight">${g.desc}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        },
+
+        renderLeaderboard(c){
+            c.innerHTML = `
+                <div class="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+                    <div class="w-24 h-24 rounded-full bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-5xl mb-6 animate-float"><i class="fas fa-trophy text-white"></i></div>
+                    <h2 class="text-3xl font-black mb-3 text-transparent bg-clip-text bg-gradient-to-r from-brand-500 to-purple-500">Топ игроков</h2>
+                    <p class="text-slate-400 text-lg mb-2">Раздел в разработке</p>
+                    <p class="text-slate-500 text-sm max-w-md">
+                        Мы работаем над глобальной таблицей лидеров, которая будет показывать лучших игроков со всего мира в реальном времени.
+                    </p>
+                    <div class="mt-8 flex items-center gap-2 text-brand-500">
+                        <span class="w-2 h-2 bg-brand-500 rounded-full animate-pulse"></span>
+                        <span class="text-sm font-mono">Скоро...</span>
+                    </div>
+                </div>
+            `;
+        },
+
+        renderStats(c){
+            const s = this.user.stats;
+            const winRate = s.gamesPlayed ? (s.wins/(s.wins+s.losses)*100) : 0;
+            c.innerHTML = `
+                <div class="flex items-center justify-between mb-6"><h2 class="text-2xl font-black">Твоя статистика</h2></div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                    ${[['Всего игр', fmtInt(s.gamesPlayed), 'fa-gamepad', 'text-brand-500'],['Побед / Поражений', `${s.wins} / ${s.losses}`, 'fa-scale-balanced', 'text-emerald-400'],['Winrate', fmt(winRate,1)+'%', 'fa-percent', 'text-cyan-400'],['Оборот', fmtInt(s.wagered), 'fa-coins', 'text-slate-300'],['Чистая прибыль', (s.profit>=0?'+':'')+fmt(s.profit,0), 'fa-chart-line', s.profit>=0?'text-emerald-400':'text-red-400'],['Макс. выигрыш', '+'+fmt(s.biggestWin,0), 'fa-trophy', 'text-purple-400']].map(x=>`
+                        <div class="glass p-4 rounded-xl"><i class="fas ${x[2]} ${x[3]} mb-2 text-2xl"></i><div class="text-lg mono font-bold ${x[3]}">${x[1]}</div><div class="text-[11px] text-slate-400">${x[0]}</div></div>`).join('')}
+                </div>
+                <div class="glass p-4 rounded-xl"><h3 class="font-bold text-sm mb-3">История последних игр</h3>
+                    <div class="space-y-2 max-h-72 overflow-y-auto hide-scrollbar">
+                        ${this.user.history.length===0?'<p class="text-slate-500 text-center text-sm py-4">Пока нет игр</p>':
+                        this.user.history.map(h=>`<div class="flex justify-between items-center p-3 bg-dark-800 rounded-lg text-sm"><div><div class="font-bold">${h.game}</div><div class="text-[11px] text-slate-500">${new Date(h.t).toLocaleString('ru-RU')}${h.mult?` • ${h.mult}x`:''}</div></div><div class="mono font-bold ${h.profit>0?'text-emerald-400':'text-red-400'}">${h.profit>0?'+':''}${fmt(h.profit,2)}</div></div>`).join('')}
+                    </div>
+                </div>`;
+        },
+
+        renderProfile(c){
+            const s = this.user.stats;
+            c.innerHTML = `
+                <div class="text-center mb-7">
+                    <div class="w-24 h-24 mx-auto rounded-full flex items-center justify-center text-4xl font-black text-dark-900 mb-4 shadow-lg shadow-brand-500/30 animate-float" style="${this.user.avatarStyle}">${this.user.avatar}</div>
+                    <h2 class="text-2xl font-bold">${this.user.username}</h2>
+                    <p class="text-slate-500 text-xs mono mt-1">ID: ${this.user.id.toUpperCase()}</p>
+                    <p class="text-slate-500 text-xs mt-0.5">Регистрация: ${new Date(this.user.createdAt).toLocaleDateString('ru-RU')}</p>
+                </div>
+                <div class="grid grid-cols-3 gap-3 mb-6">
+                    ${[['Игр', fmtInt(s.gamesPlayed)],['Побед', s.wins],['Winrate', fmt(s.gamesPlayed?(s.wins/(s.wins+s.losses)*100):0,0)+'%']].map(x=>`
+                        <div class="glass p-3 rounded-xl text-center"><div class="text-lg mono font-bold text-brand-500">${x[1]}</div><div class="text-[11px] text-slate-400">${x[0]}</div></div>`).join('')}
+                </div>
+                <div class="space-y-3">
+                    <div class="panel p-4 rounded-xl border-yellow-500/30">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-3"><div class="w-11 h-11 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-lg"><i class="fas fa-gift"></i></div>
+                            <div><div class="font-bold">Ежедневный бонус</div><div class="text-xs text-slate-400">+5 000 VC раз в 24 часа</div></div></div>
+                        </div>
+                        ${this.canClaimDaily() ? `<button onclick="app.claimDaily()" class="w-full btn-primary py-3 rounded-xl pulse-glow">Забрать +5 000 VC</button>` : `<div class="w-full bg-dark-800 border border-slate-700 rounded-xl py-3 text-center"><span class="text-slate-400 text-sm">Доступно через</span> <span class="mono font-bold text-yellow-400" id="profile-cd">${this.dailyCountdown()}</span></div>`}
+                    </div>
+                    <button onclick="app.openModal()" class="w-full glass p-4 rounded-xl flex items-center justify-between hover:bg-dark-700 transition">
+                        <div class="flex items-center gap-3"><div class="w-11 h-11 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center"><i class="fas fa-shield-alt"></i></div>
+                        <div class="text-left"><div class="font-bold">Честность и Инфо</div><div class="text-xs text-slate-400">Provably Fair, разработчики</div></div></div>
+                        <i class="fas fa-chevron-right text-slate-500"></i>
+                    </button>
+                    <a href="https://quardo-corporation.netlify.app" target="_blank" class="w-full glass p-4 rounded-xl flex items-center justify-between hover:bg-dark-700 transition mb-3">
+                        <div class="flex items-center gap-3"><div class="w-11 h-11 rounded-full bg-indigo-600/30 text-indigo-300 flex items-center justify-center"><i class="fas fa-code"></i></div>
+                        <div class="text-left"><div class="font-bold">Quardo Corporation</div><div class="text-xs text-slate-400">Наши разработчики</div></div></div>
+                        <i class="fas fa-external-link-alt text-indigo-400"></i>
+                    </a>
+                    <button onclick="app.logout()" class="w-full p-4 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition font-bold">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Выйти из аккаунта
+                    </button>
+                </div>`;
+        },
+
+        openModal(){ $('#modal').classList.remove('hidden'); $('#sound-btn').textContent='Звук: '+(Sound.enabled?'Вкл':'Выкл'); },
+        closeModal(){ $('#modal').classList.add('hidden'); },
+        backBtn(){ return `<button onclick="app.showView('lobby')" class="text-slate-400 hover:text-white text-sm mb-4 inline-flex items-center gap-2"><i class="fas fa-arrow-left"></i> Назад</button>`; },
+        half(id){ const el=$('#'+id); el.value = Math.max(1, Math.floor(this.user.balance/2)); },
+        max(id){ $('#'+id).value = this.user.balance; },
+
+        renderDice(c){
+            c.innerHTML = `${this.backBtn()}<div class="text-center mb-5"><i class="fas fa-dice text-4xl mb-2 text-amber-400"></i><h2 class="text-2xl font-black">Dice</h2></div>
+                <div class="panel rounded-2xl p-6 mb-4 text-center"><div class="text-6xl font-black mono mb-2" id="dice-result">—</div><div class="text-sm text-slate-400" id="dice-verdict">Сделай ставку</div></div>
+                <div class="glass p-4 rounded-2xl space-y-4">
+                    <div class="flex rounded-xl bg-dark-800 p-1 mb-2">
+                        <button onclick="app.diceMode='under'; app.renderDiceMode()" id="dice-under" class="flex-1 py-2 rounded-lg text-sm font-bold bg-brand-500 text-dark-900">Меньше</button>
+                        <button onclick="app.diceMode='over'; app.renderDiceMode()" id="dice-over" class="flex-1 py-2 rounded-lg text-sm font-bold text-slate-400">Больше</button>
+                    </div>
+                    <div><label class="text-xs text-slate-400 font-bold uppercase mb-1 block">Цель: <span class="text-brand-500 mono" id="dice-target-lbl">50</span></label>
+                    <input type="range" id="dice-target" min="2" max="98" value="50" oninput="app.renderDiceMode()" class="w-full accent-cyan-400"></div>
+                    <div class="flex justify-between text-xs text-slate-400"><span>Шанс: <span class="font-bold text-white" id="dice-chance">50%</span></span><span>Множитель: <span class="font-bold text-emerald-400 mono" id="dice-mult">1.98x</span></span></div>
+                    <div class="flex gap-2"><input type="number" id="dice-bet" value="100" class="flex-1 bg-dark-800 border border-slate-700 rounded-xl px-4 py-3 mono font-bold focus:border-brand-500 focus:outline-none">
+                    <button onclick="app.half('dice-bet')" class="px-3 py-2 btn-ghost rounded-xl text-xs font-bold">1/2</button><button onclick="app.max('dice-bet')" class="px-3 py-2 btn-ghost rounded-xl text-xs font-bold">MAX</button></div>
+                    <button onclick="app.rollDice()" class="w-full btn-primary py-4 rounded-xl text-lg">БРОСИТЬ</button>
+                </div>`;
+            this.diceMode = this.diceMode || 'under'; this.renderDiceMode();
+        },
+        renderDiceMode(){
+            const under = this.diceMode==='under';
+            $('#dice-under').className = 'flex-1 py-2 rounded-lg text-sm font-bold ' + (under?'bg-brand-500 text-dark-900':'text-slate-400');
+            $('#dice-over').className = 'flex-1 py-2 rounded-lg text-sm font-bold ' + (!under?'bg-brand-500 text-dark-900':'text-slate-400');
+            const t = +$('#dice-target').value;
+            $('#dice-target-lbl').textContent = t;
+            const chance = under ? t : 100-t;
+            $('#dice-chance').textContent = chance+'%';
+            $('#dice-mult').textContent = (99/chance).toFixed(2)+'x';
+        },
+        rollDice(){
+            const bet = +$('#dice-bet').value;
+            if(!bet || bet<=0 || bet>this.user.balance) return toast('Некорректная ставка','error');
+            const target = +$('#dice-target').value;
+            const under = this.diceMode==='under';
+            const chance = under ? target : 100-target;
+            const mult = 99/chance;
+            this.changeBalance(-bet);
+            const roll = Math.random()*100;
+            const win = under ? roll < target : roll > target;
+            const res = $('#dice-result'), verdict = $('#dice-verdict');
+            res.classList.add('pop'); setTimeout(()=>res.classList.remove('pop'),300);
+            res.textContent = roll.toFixed(2);
+            if(win){
+                this.changeBalance(bet*mult);
+                this.recordGame('Dice', bet, bet*(mult-1), mult);
+                res.className='text-6xl font-black mono mb-2 text-emerald-400';
+                verdict.textContent = `Выигрыш +${fmt(bet*(mult-1),2)} VC`;
+                verdict.className='text-sm text-emerald-400';
+                Sound.win(); confetti();
+            } else {
+                this.recordGame('Dice', bet, -bet);
+                res.className='text-6xl font-black mono mb-2 text-red-500';
+                verdict.textContent = 'Проигрыш';
+                verdict.className='text-sm text-red-400';
+                Sound.lose();
+            }
+        },
+
+        renderCoin(c){
+            c.innerHTML = `${this.backBtn()}<div class="text-center mb-5"><i class="fas fa-coins text-4xl mb-2 text-slate-300"></i><h2 class="text-2xl font-black">Монетка</h2></div>
+                <div class="panel rounded-2xl p-6 mb-4 flex items-center justify-center" style="min-height:200px">
+                    <div id="coin" class="w-32 h-32 rounded-full flex items-center justify-center text-5xl font-black" style="background:radial-gradient(circle at 35% 35%, #fbbf24, #b45309); color:#78350f; box-shadow:inset 0 -8px 16px rgba(0,0,0,.3)">?</div>
+                </div>
+                <div class="glass p-4 rounded-2xl space-y-4">
+                    <div class="flex gap-2">
+                        <button onclick="app.coinSide='heads'; app.renderCoinSel()" id="coin-heads" class="flex-1 py-3 rounded-xl font-bold btn-ghost"><i class="fas fa-dove mr-2"></i> Орёл <span class="block text-[10px] text-slate-400">1.96x</span></button>
+                        <button onclick="app.coinSide='tails'; app.renderCoinSel()" id="coin-tails" class="flex-1 py-3 rounded-xl font-bold btn-ghost"><i class="fas fa-cat mr-2"></i> Решка <span class="block text-[10px] text-slate-400">1.96x</span></button>
+                    </div>
+                    <div class="flex gap-2"><input type="number" id="coin-bet" value="100" class="flex-1 bg-dark-800 border border-slate-700 rounded-xl px-4 py-3 mono font-bold focus:border-brand-500 focus:outline-none">
+                    <button onclick="app.half('coin-bet')" class="px-3 py-2 btn-ghost rounded-xl text-xs font-bold">1/2</button><button onclick="app.max('coin-bet')" class="px-3 py-2 btn-ghost rounded-xl text-xs font-bold">MAX</button></div>
+                    <button onclick="app.flipCoin()" class="w-full btn-primary py-4 rounded-xl text-lg">ПОДБРОСИТЬ</button>
+                </div>`;
+            this.coinSide = this.coinSide || 'heads'; this.renderCoinSel();
+        },
+        renderCoinSel(){
+            $('#coin-heads').className = 'flex-1 py-3 rounded-xl font-bold ' + (this.coinSide==='heads'?'bet-chip selected':'btn-ghost');
+            $('#coin-tails').className = 'flex-1 py-3 rounded-xl font-bold ' + (this.coinSide==='tails'?'bet-chip selected':'btn-ghost');
+        },
+        flipCoin(){
+            const bet = +$('#coin-bet').value;
+            if(!bet||bet<=0||bet>this.user.balance) return toast('Некорректная ставка','error');
+            this.changeBalance(-bet);
+            const coin = $('#coin');
+            let spins = 0;
+            const iv = setInterval(()=>{
+                spins++;
+                coin.style.transition='none';
+                coin.innerHTML = spins % 2 === 0 ? '<i class="fas fa-dove"></i>' : '<i class="fas fa-cat"></i>';
+                coin.style.transform = `rotateX(${spins*120}deg)`;
+                if(spins>8){ clearInterval(iv); this.finishCoinFlip(bet); }
+            },60);
+        },
+        finishCoinFlip(bet){
+            const coin = $('#coin');
+            const result = Math.random()<.5?'heads':'tails';
+            const win = result===this.coinSide;
+            coin.innerHTML = result==='heads' ? '<i class="fas fa-dove"></i>' : '<i class="fas fa-cat"></i>';
+            coin.style.transition='all .4s'; coin.style.transform='rotateX(0deg)';
+            if(win){
+                this.changeBalance(bet*1.96);
+                this.recordGame('Монетка', bet, bet*0.96, 1.96);
+                coin.style.boxShadow='0 0 40px 10px rgba(16,185,129,.6)';
+                toast('Выигрыш +'+fmt(bet*0.96,2)+' VC','success');
+                Sound.win(); confetti();
+            } else {
+                this.recordGame('Монетка', bet, -bet);
+                coin.style.boxShadow='0 0 40px 10px rgba(239,68,68,.5)';
+                toast('Проигрыш','error');
+                Sound.lose();
+            }
+            setTimeout(()=>coin.style.boxShadow='inset 0 -8px 16px rgba(0,0,0,.3)',2000);
+        },
+
+        mines: { active:false, grid:[], mines:3, revealed:0, mult:1, bet:0 },
+        renderMines(c){
+            c.innerHTML = `${this.backBtn()}<div class="text-center mb-4"><i class="fas fa-bomb text-3xl mb-1 text-purple-400"></i><h2 class="text-2xl font-black">Mines</h2></div>
+                <div class="flex gap-2 mb-4" id="mines-mine-btns">
+                    ${[3,5,8,10].map((m,i)=>`<button onclick="app.setMinesCount(${m})" data-m="${m}" class="flex-1 py-2 rounded-xl text-sm font-bold ${i===0?'bg-purple-500 text-white':'btn-ghost'} transition">${m} <i class="fas fa-bomb"></i></button>`).join('')}
+                </div>
+                <div class="grid grid-cols-5 gap-1.5 mb-4" id="mines-grid"></div>
+                <div class="glass p-4 rounded-2xl space-y-3">
+                    <div class="flex justify-between text-sm"><span class="text-slate-400">Множитель</span><span class="mono font-bold text-brand-500" id="mines-mult">1.00x</span></div>
+                    <div class="flex gap-2"><input type="number" id="mines-bet" value="100" class="flex-1 bg-dark-800 border border-slate-700 rounded-xl px-4 py-3 mono font-bold focus:border-brand-500 focus:outline-none">
+                    <button onclick="app.half('mines-bet')" class="px-3 py-2 btn-ghost rounded-xl text-xs font-bold">1/2</button><button onclick="app.max('mines-bet')" class="px-3 py-2 btn-ghost rounded-xl text-xs font-bold">MAX</button></div>
+                    <button id="mines-action" onclick="app.startMines()" class="w-full btn-primary py-3.5 rounded-xl">НАЧАТЬ</button>
+                </div>`;
+            this.mines.mines = 3; this.renderMinesGrid();
+        },
+        setMinesCount(n){
+            this.mines.mines = n;
+            $$('#mines-mine-btns button').forEach(b=>{ b.className = 'flex-1 py-2 rounded-xl text-sm font-bold ' + (+b.dataset.m===n?'bg-purple-500 text-white':'btn-ghost') + ' transition'; });
+            if(!this.mines.active) this.renderMinesGrid();
+        },
+        renderMinesGrid(){
+            $('#mines-grid').innerHTML = Array(25).fill(0).map((_,i)=>`<button onclick="app.clickMine(${i})" id="mine-${i}" class="cell aspect-square panel rounded-lg text-2xl flex items-center justify-center text-slate-600"><i class="fas fa-question"></i></button>`).join('');
+        },
+        startMines(){
+            const bet = +$('#mines-bet').value;
+            if(!bet||bet<=0||bet>this.user.balance) return toast('Некорректная ставка','error');
+            this.changeBalance(-bet);
+            this.mines.active = true; this.mines.bet = bet; this.mines.revealed = 0; this.mines.mult = 1;
+            this.mines.grid = Array(25).fill('gem');
+            let placed = 0;
+            while(placed < this.mines.mines){
+                const i = rndInt(0,24);
+                if(this.mines.grid[i]==='gem'){ this.mines.grid[i]='mine'; placed++; }
+            }
+            this.renderMinesGrid();
+            $('#mines-mult').textContent = '1.00x';
+            const btn = $('#mines-action');
+            btn.textContent = 'ЗАБРАТЬ ВЫИГРЫШ';
+            btn.className = 'w-full btn-danger py-3.5 rounded-xl';
+            btn.onclick = ()=>app.cashoutMines();
+            Sound.click();
+        },
+        clickMine(i){
+            if(!this.mines.active) return;
+            const cell = $('#mine-'+i);
+            if(cell.dataset.open) return;
+            cell.dataset.open = '1';
+            if(this.mines.grid[i]==='mine'){
+                cell.innerHTML='<i class="fas fa-bomb text-red-500"></i>'; cell.className='cell aspect-square rounded-lg text-2xl flex items-center justify-center bg-red-500/20 border border-red-500';
+                this.endMines(false);
+            } else {
+                cell.innerHTML='<i class="fas fa-gem text-brand-500"></i>'; cell.className='cell aspect-square rounded-lg text-2xl flex items-center justify-center bg-brand-500/20 border border-brand-500 pop';
+                this.mines.revealed++;
+                this.mines.mult = 1 + this.mines.revealed * 0.22 * (1 + this.mines.mines*0.02);
+                $('#mines-mult').textContent = this.mines.mult.toFixed(2)+'x';
+                Sound.tick();
+            }
+        },
+        cashoutMines(){ if(this.mines.active && this.mines.revealed>0) this.endMines(true); },
+        endMines(won){
+            this.mines.active = false;
+            this.mines.grid.forEach((type,i)=>{
+                const cell = $('#mine-'+i);
+                if(!cell.dataset.open){ cell.dataset.open='1'; cell.innerHTML = type==='mine'?'<i class="fas fa-bomb text-slate-500"></i>':'<i class="fas fa-gem text-slate-600"></i>'; cell.className='cell aspect-square rounded-lg text-2xl flex items-center justify-center opacity-40 '+(type==='mine'?'bg-red-500/10':'bg-slate-500/10'); }
+            });
+            const btn = $('#mines-action');
+            btn.textContent='НАЧАТЬ'; btn.className='w-full btn-primary py-3.5 rounded-xl'; btn.onclick=()=>app.startMines();
+            if(won){
+                this.changeBalance(this.mines.bet * this.mines.mult);
+                this.recordGame('Mines', this.mines.bet, this.mines.bet*(this.mines.mult-1), this.mines.mult);
+                toast('Выигрыш +'+fmt(this.mines.bet*(this.mines.mult-1),2)+' VC','success');
+                Sound.win(); confetti();
+            } else {
+                this.recordGame('Mines', this.mines.bet, -this.mines.bet);
+                toast('Бум! Мина','error');
+                Sound.lose();
+            }
+        },
+
+        roulette: { bet:0, type:null, spinning:false, rotation:0 },
+        ROULETTE_ORDER: [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26],
+        RED_NUMBERS: new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]),
+        renderRoulette(c){
+            c.innerHTML = `${this.backBtn()}<div class="text-center mb-4"><i class="fas fa-dharmachakra text-3xl mb-1 text-emerald-400"></i><h2 class="text-2xl font-black">Рулетка</h2></div>
+                <div class="panel rounded-2xl p-3 mb-4 flex justify-center relative">
+                    <canvas id="roulette-wheel" width="280" height="280"></canvas>
+                    <div class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 text-center pointer-events-none">
+                        <div class="text-2xl font-black mono text-white bg-dark-900/80 rounded-xl px-4 py-1" id="roulette-result">—</div>
+                    </div>
+                    <div class="absolute -top-0 left-1/2 -translate-x-1/2 text-2xl" style="color:#FF2E63"><i class="fas fa-caret-down"></i></div>
+                </div>
+                <div class="glass p-4 rounded-2xl space-y-4">
+                    <div class="grid grid-cols-3 gap-2 text-center text-sm font-bold">
+                        <button onclick="app.rouletteBet('red')" class="py-3 rounded-xl btn-ghost"> Красное <span class="block text-[10px] text-slate-400">2x</span></button>
+                        <button onclick="app.rouletteBet('black')" class="py-3 rounded-xl btn-ghost"><i class="fas fa-circle text-black text-[10px]"></i> Чёрное <span class="block text-[10px] text-slate-400">2x</span></button>
+                        <button onclick="app.rouletteBet('green')" class="py-3 rounded-xl btn-ghost"><i class="fas fa-circle text-green-500 text-[10px]"></i> 0 <span class="block text-[10px] text-slate-400">36x</span></button>
+                        <button onclick="app.rouletteBet('even')" class="py-3 rounded-xl btn-ghost">Чёт <span class="block text-[10px] text-slate-400">2x</span></button>
+                        <button onclick="app.rouletteBet('odd')" class="py-3 rounded-xl btn-ghost">Нечет <span class="block text-[10px] text-slate-400">2x</span></button>
+                        <button onclick="app.rouletteBet('low')" class="py-3 rounded-xl btn-ghost">1-18 <span class="block text-[10px] text-slate-400">2x</span></button>
+                        <button onclick="app.rouletteBet('high')" class="py-3 rounded-xl btn-ghost">19-36 <span class="block text-[10px] text-slate-400">2x</span></button>
+                        <button onclick="app.rouletteBet('dozen1')" class="py-3 rounded-xl btn-ghost">1-12 <span class="block text-[10px] text-slate-400">3x</span></button>
+                        <button onclick="app.rouletteBet('dozen2')" class="py-3 rounded-xl btn-ghost">13-24 <span class="block text-[10px] text-slate-400">3x</span></button>
+                        <button onclick="app.rouletteBet('dozen3')" class="py-3 rounded-xl btn-ghost">25-36 <span class="block text-[10px] text-slate-400">3x</span></button>
+                    </div>
+                    <div class="flex gap-2"><input type="number" id="roulette-bet" value="100" class="flex-1 bg-dark-800 border border-slate-700 rounded-xl px-4 py-3 mono font-bold focus:border-brand-500 focus:outline-none">
+                    <button onclick="app.half('roulette-bet')" class="px-3 py-2 btn-ghost rounded-xl text-xs font-bold">1/2</button><button onclick="app.max('roulette-bet')" class="px-3 py-2 btn-ghost rounded-xl text-xs font-bold">MAX</button></div>
+                    <button id="roulette-spin-btn" onclick="app.spinRoulette()" class="w-full btn-primary py-4 rounded-xl text-lg">КРУТИТЬ</button>
+                </div>`;
+            this.drawRoulette(this.roulette.rotation);
+        },
+        rouletteBet(type){
+            this.roulette.type = type;
+            document.querySelectorAll("button[onclick*='rouletteBet']").forEach(b => {
+                b.classList.remove('bet-chip', 'selected');
+                if(b.getAttribute('onclick').includes(`'${type}'`)) b.classList.add('bet-chip', 'selected');
+            });
+            toast('Ставка: ' + type, 'info');
+            Sound.click();
+        },
+        drawRoulette(rot){
+            const cv = $('#roulette-wheel'); if(!cv) return;
+            const ctx = cv.getContext('2d');
+            const W = cv.width, H = cv.height, cx = W/2, cy = H/2, r = W/2-6;
+            ctx.clearRect(0,0,W,H);
+            const seg = (2*Math.PI)/37;
+            ctx.save(); ctx.translate(cx,cy); ctx.rotate(rot);
+            this.ROULETTE_ORDER.forEach((num, i)=>{
+                const a0 = i*seg, a1 = (i+1)*seg;
+                const color = num===0 ? '#0a7a3d' : this.RED_NUMBERS.has(num) ? '#dc2626' : '#1a1a1a';
+                ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,r,a0,a1); ctx.closePath();
+                ctx.fillStyle = color; ctx.fill();
+                ctx.strokeStyle='rgba(255,255,255,.15)'; ctx.lineWidth=1; ctx.stroke();
+                ctx.save(); ctx.rotate(a0+seg/2);
+                ctx.fillStyle='#fff'; ctx.font='bold 11px Inter'; ctx.textAlign='right'; ctx.textBaseline='middle';
+                ctx.fillText(num, r-8, 0);
+                ctx.restore();
+            });
+            ctx.restore();
+            ctx.beginPath(); ctx.arc(cx,cy,26,0,Math.PI*2); ctx.fillStyle='#0B0E14'; ctx.fill();
+            ctx.strokeStyle='#00E5FF'; ctx.lineWidth=3; ctx.stroke();
+            ctx.fillStyle='#00E5FF'; ctx.font='bold 10px Inter'; ctx.textAlign='center'; ctx.fillText('VIRTUO', cx, cy);
+        },
+        spinRoulette(){
+            if(this.roulette.spinning) return;
+            const bet = +$('#roulette-bet').value;
+            if(!bet||bet<=0||bet>this.user.balance) return toast('Некорректная ставка','error');
+            if(!this.roulette.type) return toast('Выбери тип ставки','error');
+            this.changeBalance(-bet);
+            this.roulette.spinning = true;
+            $('#roulette-spin-btn').disabled = true;
+            
+            const result = rndInt(0,36);
+            const idx = this.ROULETTE_ORDER.indexOf(result);
+            const targetRot = this.roulette.rotation + (2*Math.PI*5) + (1.5*Math.PI - idx*(2*Math.PI/37) - Math.PI/37);
+            const startRot = this.roulette.rotation;
+            const dur = 3500, start = performance.now();
+            
+            Sound.click();
+            const anim = (now)=>{
+                const p = clamp((now-start)/dur,0,1);
+                const e = 1 - Math.pow(1-p,3);
+                const rot = startRot + (targetRot-startRot)*e;
+                this.roulette.rotation = rot;
+                this.drawRoulette(rot);
+                if(p<1){ this.rafs.push(requestAnimationFrame(anim)); }
+                else { 
+                    this.roulette.spinning=false; 
+                    $('#roulette-spin-btn').disabled=false; 
+                    this.settleRoulette(result, bet); 
+                }
+            };
+            this.rafs.push(requestAnimationFrame(anim));
+        },
+        settleRoulette(result, bet){
+            $('#roulette-result').textContent = result;
+            const t = this.roulette.type;
+            let win = false, mult = 1;
+            
+            const red = this.RED_NUMBERS.has(result);
+            const black = !red && result!==0;
+            
+            if(t==='red'){ win=red; mult=2; }
+            else if(t==='black'){ win=black; mult=2; }
+            else if(t==='green'){ win=result===0; mult=36; }
+            else if(t==='even'){ win=result!==0 && result%2===0; mult=2; }
+            else if(t==='odd'){ win=result%2===1; mult=2; }
+            else if(t==='low'){ win=result>=1&&result<=18; mult=2; }
+            else if(t==='high'){ win=result>=19&&result<=36; mult=2; }
+            else if(t==='dozen1'){ win=result>=1&&result<=12; mult=3; }
+            else if(t==='dozen2'){ win=result>=13&&result<=24; mult=3; }
+            else if(t==='dozen3'){ win=result>=25&&result<=36; mult=3; }
+            
+            if(win){
+                const w = bet*mult;
+                this.changeBalance(w);
+                this.recordGame('Рулетка', bet, bet*(mult-1), mult);
+                toast(`Выигрыш +${fmt(bet*(mult-1),2)} VC (выпало ${result})`,'success');
+                Sound.win(); confetti();
+            } else {
+                this.recordGame('Рулетка', bet, -bet);
+                toast(`Проигрыш (выпало ${result})`,'error');
+                Sound.lose();
+            }
+        },
+
+        slots: { spinning:false },
+        SLOT_SYMBOLS: ['<i class="fas fa-apple-alt text-red-500"></i>','<i class="fas fa-lemon text-yellow-400"></i>','<i class="fas fa-orange text-orange-500"></i>','<i class="fas fa-gem text-purple-500"></i>','<i class="fas fa-gem text-cyan-400"></i>','7️⃣','<i class="fas fa-star text-yellow-300"></i>'],
+        renderSlots(c){
+            c.innerHTML = `${this.backBtn()}<div class="text-center mb-4"><i class="fas fa-gem text-3xl mb-1 text-pink-400"></i><h2 class="text-2xl font-black">Слоты</h2></div>
+                <div class="panel rounded-2xl p-5 mb-4"><div class="grid grid-cols-3 gap-2 text-center" id="slot-reels">
+                    ${[0,1,2].map(i=>`<div id="reel-${i}" class="bg-dark-800 rounded-xl py-8 text-5xl flex items-center justify-center"></div>`).join('')}
+                </div></div>
+                <div class="glass p-4 rounded-2xl space-y-4">
+                    <div class="flex gap-2"><input type="number" id="slots-bet" value="100" class="flex-1 bg-dark-800 border border-slate-700 rounded-xl px-4 py-3 mono font-bold focus:border-brand-500 focus:outline-none">
+                    <button onclick="app.half('slots-bet')" class="px-3 py-2 btn-ghost rounded-xl text-xs font-bold">1/2</button><button onclick="app.max('slots-bet')" class="px-3 py-2 btn-ghost rounded-xl text-xs font-bold">MAX</button></div>
+                    <button onclick="app.spinSlots()" id="slots-spin-btn" class="w-full btn-primary py-4 rounded-xl text-lg">КРУТИТЬ</button>
+                </div>`;
+        },
+        spinSlots(){
+            if(this.slots.spinning) return;
+            const bet = +$('#slots-bet').value;
+            if(!bet||bet<=0||bet>this.user.balance) return toast('Некорректная ставка','error');
+            this.changeBalance(-bet);
+            this.slots.spinning = true;
+            $('#slots-spin-btn').disabled = true;
+            const result = [0,1,2].map(()=>this.SLOT_SYMBOLS[rndInt(0,this.SLOT_SYMBOLS.length-1)]);
+            Sound.click();
+            [0,1,2].forEach((i,idx)=>{
+                const reel = $('#reel-'+i);
+                let spins = 0;
+                const iv = setInterval(()=>{
+                    spins++;
+                    reel.innerHTML = this.SLOT_SYMBOLS[rndInt(0,this.SLOT_SYMBOLS.length-1)];
+                    if(spins > 8+idx*3){
+                        clearInterval(iv);
+                        reel.innerHTML = result[i];
+                        reel.classList.add('pop');
+                        setTimeout(()=>reel.classList.remove('pop'),300);
+                        if(i===2) this.settleSlots(result, bet);
+                    }
+                }, 70);
+            });
+        },
+        settleSlots(result, bet){
+            this.slots.spinning = false;
+            $('#slots-spin-btn').disabled = false;
+            // Упрощенная логика для иконок: проверяем совпадение строк
+            const all = result[0] === result[1] && result[1] === result[2];
+            let mult = 0;
+            if(all){
+                if(result[0].includes('fa-gem') && result[0].includes('text-cyan-400')) mult=25; 
+                else if(result[0].includes('7️⃣')) mult=15; 
+                else if(result[0].includes('fa-star')) mult=10;
+                else if(result[0].includes('fa-apple-alt')) mult=8; 
+                else mult=5;
+            }
+            if(mult>0){
+                this.changeBalance(bet*mult);
+                this.recordGame('Слоты', bet, bet*(mult-1), mult);
+                toast('Выигрыш +'+fmt(bet*(mult-1),2)+' VC','success');
+                Sound.win(); confetti();
+            } else {
+                this.recordGame('Слоты', bet, -bet);
+                toast('Мимо','error');
+                Sound.lose();
+            }
+        },
+
+        plinko: { dropping:false, rows:8, slots:9, mults:[5, 3, 1.4, 0.7, 0.7, 0.7, 1.4, 3, 5] },
+        renderPlinko(c){
+            c.innerHTML = `${this.backBtn()}<div class="text-center mb-4"><i class="fas fa-circle text-3xl mb-1 text-cyan-400"></i><h2 class="text-2xl font-black">Plinko</h2></div>
+                <div class="panel rounded-2xl p-2 mb-4 flex justify-center"><canvas id="plinko-cv" width="300" height="420"></canvas></div>
+                <div class="glass p-4 rounded-2xl space-y-4">
+                    <div class="flex gap-2"><input type="number" id="plinko-bet" value="100" class="flex-1 bg-dark-800 border border-slate-700 rounded-xl px-4 py-3 mono font-bold focus:border-brand-500 focus:outline-none">
+                    <button onclick="app.half('plinko-bet')" class="px-3 py-2 btn-ghost rounded-xl text-xs font-bold">1/2</button><button onclick="app.max('plinko-bet')" class="px-3 py-2 btn-ghost rounded-xl text-xs font-bold">MAX</button></div>
+                    <button onclick="app.dropPlinko()" id="plinko-btn" class="w-full btn-primary py-4 rounded-xl text-lg">БРОСИТЬ ШАР</button>
+                </div>`;
+            this.drawPlinko();
+        },
+        drawPlinko(){
+            const cv = $('#plinko-cv'); if(!cv) return;
+            const ctx = cv.getContext('2d');
+            const W=cv.width,H=cv.height; ctx.clearRect(0,0,W,H);
+            ctx.fillStyle='#151A23'; ctx.fillRect(0,0,W,H);
+            const top=30, bottom=H-50, rows=this.plinko.rows;
+            const pegGap = (bottom-top)/rows;
+            for(let r=0;r<rows;r++){
+                const y = top + pegGap*(r+1);
+                const count = r+3;
+                const spacing = W/(count+1);
+                for(let i=0;i<count;i++){
+                    const x = spacing*(i+1);
+                    ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2);
+                    ctx.fillStyle='#00E5FF'; ctx.fill();
+                }
+            }
+            const n = this.plinko.slots;
+            const slotW = W/n;
+            for(let i=0;i<n;i++){
+                const x = i*slotW;
+                const m = this.plinko.mults[i];
+                ctx.fillStyle = m>=3?'#10B981':m>=1.4?'#00E5FF':'#EF4444';
+                ctx.fillRect(x+2, bottom+14, slotW-4, 26);
+                ctx.fillStyle='#0B0E14'; ctx.font='bold 11px Inter'; ctx.textAlign='center';
+                ctx.fillText(m+'x', x+slotW/2, bottom+31);
+            }
+        },
+        dropPlinko(){
+            if(this.plinko.dropping) return;
+            const bet = +$('#plinko-bet').value;
+            if(!bet||bet<=0||bet>this.user.balance) return toast('Некорректная ставка','error');
+            this.changeBalance(-bet);
+            this.plinko.dropping = true;
+            $('#plinko-btn').disabled = true;
+            
+            const rand = Math.random();
+            let targetMult;
+            if(rand < 0.40) targetMult = 0.7;
+            else if(rand < 0.70) targetMult = 1.4;
+            else if(rand < 0.90) targetMult = 3.0;
+            else targetMult = 5.0;
+
+            const possibleSlots = this.plinko.mults.map((m, i) => m === targetMult ? i : -1).filter(i => i !== -1);
+            const targetSlot = possibleSlots[rndInt(0, possibleSlots.length - 1)];
+
+            const cv = $('#plinko-cv'), ctx = cv.getContext('2d');
+            const W=cv.width,H=cv.height;
+            const top=20, bottom=H-54, rows=this.plinko.rows;
+            const pegGap=(bottom-top)/rows;
+            
+            let curSlot = 4;
+            const path=[{x:W/2, y:top}];
+            let curY = top;
+            Sound.click();
+            
+            const dropIv = setInterval(()=>{
+                this.drawPlinko();
+                curY += 8;
+                if(curY > top + pegGap*path.length){
+                    if(path.length < rows) {
+                        const direction = targetSlot > curSlot ? 1 : (targetSlot < curSlot ? -1 : (Math.random()<.5?1:-1));
+                        curSlot = clamp(curSlot + direction, 0, this.plinko.slots-1);
+                    } else {
+                        curSlot = targetSlot;
+                    }
+                    const n = path.length+3;
+                    const spacing = W/(n+1);
+                    path.push({x: spacing*(curSlot+1), y:curY});
+                }
+                const pt = path[path.length-1];
+                const targetX = (curSlot+0.5)*(W/this.plinko.slots);
+                pt.x += (targetX - pt.x)*0.15;
+                
+                ctx.beginPath(); ctx.arc(pt.x, Math.min(curY,bottom), 6, 0, Math.PI*2);
+                ctx.fillStyle='#FF2E63'; ctx.fill();
+                ctx.strokeStyle='#fff'; ctx.stroke();
+                
+                if(curY >= bottom){
+                    clearInterval(dropIv);
+                    this.plinko.dropping=false; $('#plinko-btn').disabled=false;
+                    this.settlePlinko(curSlot, bet);
+                }
+            }, 25);
+        },
+        settlePlinko(slot, bet){
+            const mult = this.plinko.mults[slot];
+            if(mult>0){
+                const w = bet*mult;
+                this.changeBalance(w);
+                this.recordGame('Plinko', bet, bet*(mult-1), mult);
+                toast('Выигрыш +'+fmt(bet*(mult-1),2)+' VC','success');
+                Sound.win(); if(mult>=3) confetti();
+            } else {
+                this.recordGame('Plinko', bet, -bet);
+                toast('Проигрыш','error');
+                Sound.lose();
+            }
+        },
+
+        wheel: { spinning:false, rotation:0, segs:[0,1.5,2,1,0.5,3,1,5] },
+        renderWheel(c){
+            c.innerHTML = `${this.backBtn()}<div class="text-center mb-4"><i class="fas fa-compact-disc text-3xl mb-1 text-orange-400"></i><h2 class="text-2xl font-black">Колесо фортуны</h2></div>
+                <div class="panel rounded-2xl p-3 mb-4 flex justify-center relative">
+                    <canvas id="fortune-wheel" width="280" height="280"></canvas>
+                    <div class="absolute -top-0 left-1/2 -translate-x-1/2 text-2xl" style="color:#F59E0B"><i class="fas fa-caret-down"></i></div>
+                </div>
+                <div class="glass p-4 rounded-2xl space-y-4">
+                    <div class="flex gap-2"><input type="number" id="wheel-bet" value="100" class="flex-1 bg-dark-800 border border-slate-700 rounded-xl px-4 py-3 mono font-bold focus:border-brand-500 focus:outline-none">
+                    <button onclick="app.half('wheel-bet')" class="px-3 py-2 btn-ghost rounded-xl text-xs font-bold">1/2</button><button onclick="app.max('wheel-bet')" class="px-3 py-2 btn-ghost rounded-xl text-xs font-bold">MAX</button></div>
+                    <button onclick="app.spinWheel()" id="wheel-spin-btn" class="w-full btn-primary py-4 rounded-xl text-lg">КРУТИТЬ</button>
+                </div>`;
+            this.drawWheel(this.wheel.rotation);
+        },
+        drawWheel(rot){
+            const cv = $('#fortune-wheel'); if(!cv) return;
+            const ctx = cv.getContext('2d');
+            const W=cv.width,H=cv.height,cx=W/2,cy=H/2,r=W/2-10;
+            const segs=this.wheel.segs, n=segs.length, ang=(2*Math.PI)/n;
+            const colors=['#dc2626','#2563eb','#10b981','#f59e0b','#8b5cf6','#ec4899','#00b8d4','#64748b'];
+            ctx.clearRect(0,0,W,H);
+            ctx.save(); ctx.translate(cx,cy); ctx.rotate(rot);
+            segs.forEach((m,i)=>{
+                ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,r,i*ang,(i+1)*ang); ctx.closePath();
+                ctx.fillStyle=colors[i%colors.length]; ctx.fill();
+                ctx.strokeStyle='rgba(0,0,0,.4)'; ctx.lineWidth=2; ctx.stroke();
+                ctx.save(); ctx.rotate(i*ang+ang/2);
+                ctx.fillStyle='#fff'; ctx.font='bold 15px Inter'; ctx.textAlign='right'; ctx.textBaseline='middle';
+                ctx.fillText(m+'x', r-12, 0);
+                ctx.restore();
+            });
+            ctx.restore();
+            ctx.beginPath(); ctx.arc(cx,cy,24,0,Math.PI*2); ctx.fillStyle='#0B0E14'; ctx.fill();
+            ctx.strokeStyle='#F59E0B'; ctx.lineWidth=3; ctx.stroke();
+            ctx.fillStyle='#F59E0B'; ctx.font='bold 10px Inter'; ctx.textAlign='center'; ctx.fillText('FORTUNE', cx, cy);
+        },
+        spinWheel(){
+            if(this.wheel.spinning) return;
+            const bet = +$('#wheel-bet').value;
+            if(!bet||bet<=0||bet>this.user.balance) return toast('Некорректная ставка','error');
+            this.changeBalance(-bet);
+            this.wheel.spinning = true;
+            $('#wheel-spin-btn').disabled = true;
+            const n = this.wheel.segs.length, ang=(2*Math.PI)/n;
+            const idx = rndInt(0,n-1);
+            const targetRot = this.wheel.rotation + (2*Math.PI*6) + (1.5*Math.PI - idx*ang - ang/2);
+            const startRot = this.wheel.rotation;
+            const dur=3200, start=performance.now();
+            Sound.click();
+            const anim = (now)=>{
+                const p = clamp((now-start)/dur,0,1);
+                const e = 1-Math.pow(1-p,3);
+                this.wheel.rotation = startRot + (targetRot-startRot)*e;
+                this.drawWheel(this.wheel.rotation);
+                if(p<1){ this.rafs.push(requestAnimationFrame(anim)); }
+                else {
+                    this.wheel.spinning=false; $('#wheel-spin-btn').disabled=false;
+                    const mult = this.wheel.segs[idx];
+                    if(mult>0){ this.changeBalance(bet*mult); this.recordGame('Колесо',bet,bet*(mult-1),mult); toast('Выигрыш +'+fmt(bet*(mult-1),2)+' VC','success'); Sound.win(); if(mult>=3) confetti(); }
+                    else { this.recordGame('Колесо',bet,-bet); toast('Сектор 0x... Проигрыш','error'); Sound.lose(); }
+                }
+            };
+            this.rafs.push(requestAnimationFrame(anim));
+        }
+    };
+
+    const Auth = {
+        tab(t){
+            $('#tab-login-btn').className = 'flex-1 py-2.5 rounded-lg font-bold text-sm transition ' + (t==='login'?'tab-active bg-dark-700':'text-slate-500');
+            $('#tab-register-btn').className = 'flex-1 py-2.5 rounded-lg font-bold text-sm transition ' + (t==='register'?'tab-active bg-dark-700':'text-slate-500');
+            $('#login-form').classList.toggle('hidden', t!=='login');
+            $('#register-form').classList.toggle('hidden', t!=='register');
+        },
+        login(){
+            const u = $('#login-username').value.trim();
+            const p = $('#login-password').value;
+            if(!u||!p) return toast('Заполни все поля','error');
+            app.login(u,p);
+        },
+        register(){
+            const u = $('#reg-username').value.trim();
+            const p = $('#reg-password').value;
+            const p2 = $('#reg-password2').value;
+            if(u.length<3) return toast('Ник от 3 символов','error');
+            if(p.length<6) return toast('Пароль от 6 символов','error');
+            if(p!==p2) return toast('Пароли не совпадают','error');
+            app.register(u,p);
+        }
+    };
+
+    const Crash = {
+        LAMBDA: Math.log(1000)/40000,
+        state: null, timer: null,
+        bots: ['Vladik','CryptoKing','LuckyStar','MegaWin','ProGambler','Ghost','Turbo','NightWolf','Fenrir','RocketMan','NoScope','Dreamer','Ace','Miner','ZxcGod','Blaster','GoldDigger','Hype','Nova','Phantom'],
+        ensure(){
+            if(!this.timer){ this.newRound(); this.timer = setInterval(()=>this.tick(), 100); }
+        },
+        newRound(){
+            this.state = {
+                phase:'betting', roundId: uid(),
+                crashPoint: this.genCrashPoint(),
+                bettingEndsAt: Date.now()+10000,
+                startedAt: 0, crashedAt: 0, multiplier: 1,
+                bets: [], feed: [], botQueue: this.genBots()
+            };
+            this.history = this.history || [];
+        },
+        genCrashPoint(){
+            const r = Math.random();
+            if(r<0.05) return 1.0;
+            if(r<0.20) return 1.0+Math.random()*0.5;
+            if(r<0.50) return 1.5+Math.random()*1.5;
+            if(r<0.75) return 3+Math.random()*4;
+            if(r<0.90) return 7+Math.random()*13;
+            if(r<0.97) return 20+Math.random()*80;
+            return 100+Math.random()*900;
+        },
+        genBots(){
+            const n = rndInt(4,9);
+            const bots = [];
+            for(let i=0;i<n;i++){
+                const bet = [10,25,50,100,250,500,1000,2500][rndInt(0,7)];
+                const cashout = Math.random()<0.35 ? rnd(1.05,2.5) : rnd(1.5,25);
+                bots.push({ name: this.bots[rndInt(0,this.bots.length-1)], bet, cashout: Math.round(cashout*100)/100, cashed:false, joinDelay: rndInt(0,8000) });
+            }
+            return bots;
+        },
+        tick(){
+            const s = this.state; if(!s) return;
+            const now = Date.now();
+            if(s.phase==='betting'){
+                s.botQueue = s.botQueue.filter(b=>{
+                    if(now >= s.bettingEndsAt-10000+b.joinDelay && !b.placed){
+                        b.placed = true;
+                        s.bets.push({id:uid(), name:b.name, bet:b.bet, cashout:b.cashout, bot:true, cashedAt:0, placedAt:now});
+                    }
+                    return !b.placed;
+                });
+                if(now >= s.bettingEndsAt){ s.phase='running'; s.startedAt=now; Sound.tick(); }
+            } else if(s.phase==='running'){
+                const t = now-s.startedAt;
+                s.multiplier = Math.exp(t*this.LAMBDA);
+                s.bets.forEach(b=>{
+                    if(b.bot && !b.cashedAt && s.multiplier >= b.cashout){
+                        b.cashedAt = now;
+                        s.feed.unshift({name:b.name, bet:b.bet, mult:b.cashout, t:now});
+                        if(s.feed.length>8) s.feed.pop();
+                    }
+                });
+                if(s.multiplier >= s.crashPoint){
+                    s.phase='crashed'; s.multiplier = s.crashPoint; s.crashedAt=now;
+                    this.settle();
+                }
+            } else if(s.phase==='crashed'){
+                if(now - s.crashedAt > 4000) this.newRound();
+            }
+            this.render();
+        },
+        settle(){
+            const s = this.state;
+            const my = s.bets.find(b=>b.mine);
+            if(my && !my.cashedAt){
+                app.recordGame('Crash', my.bet, -my.bet);
+                toast('Crash на '+s.crashPoint.toFixed(2)+'x — проигрыш','error');
+                Sound.crash();
+            }
+            this.history.unshift({point:s.crashPoint, t:Date.now()});
+            if(this.history.length>12) this.history.pop();
+        },
+        placeBet(amount){
+            const s = this.state;
+            if(s.phase!=='betting') return toast('Ставки закрыты','error');
+            if(amount<=0||amount>app.user.balance) return toast('Недостаточно средств','error');
+            if(s.bets.find(b=>b.mine)) return toast('Ты уже сделал ставку','error');
+            app.changeBalance(-amount);
+            s.bets.push({id:uid(), name:app.user.username, bet:amount, cashout:0, bot:false, cashedAt:0, mine:true, placedAt:Date.now()});
+            Sound.click();
+        },
+        cashout(){
+            const s = this.state;
+            const my = s.bets.find(b=>b.mine);
+            if(!my||my.cashedAt||s.phase!=='running') return;
+            my.cashedAt = Date.now();
+            const mult = s.multiplier;
+            const w = my.bet*mult;
+            app.changeBalance(w);
+            app.recordGame('Crash', my.bet, my.bet*(mult-1), mult);
+            toast('Забрал на '+mult.toFixed(2)+'x! +'+fmt(my.bet*(mult-1),2)+' VC','success');
+            Sound.win(); confetti();
+        },
+        render(){
+            const lm = $('#lobby-crash-mult'), ls = $('#lobby-crash-status');
+            if(lm&&ls){
+                const s = this.state;
+                lm.textContent = s.multiplier.toFixed(2)+'x';
+                lm.className = 'mono text-3xl font-black ' + (s.phase==='crashed'?'text-red-500':s.phase==='running'?'text-brand-500':'text-slate-300');
+                ls.textContent = s.phase==='betting' ? 'Приём ставок... '+Math.max(0,Math.ceil((s.bettingEndsAt-Date.now())/1000))+'с' : s.phase==='running' ? 'Ракета в полёте!' : 'Упала на '+s.crashPoint.toFixed(2)+'x';
+            }
+            if(app.currentView!=='crash') return;
+            const s = this.state;
+            const m = $('#crash-mult'); if(!m) return;
+            m.textContent = s.multiplier.toFixed(2)+'x';
+            m.className = 'text-5xl sm:text-7xl font-black mono transition-colors ' + (s.phase==='crashed'?'text-red-500':s.phase==='running'?'text-white':'text-slate-300');
+            const st = $('#crash-status');
+            if(s.phase==='betting'){
+                const left = Math.max(0,Math.ceil((s.bettingEndsAt-Date.now())/1000));
+                st.innerHTML = `<span class="text-yellow-400 font-bold">Приём ставок — ${left}с</span>`;
+                st.className='text-sm animate-pulse';
+                $('#crash-cd').style.width = ((Date.now()-(s.bettingEndsAt-10000))/10000*100)+'%';
+            } else if(s.phase==='running'){
+                st.innerHTML = `<span class="text-brand-500 font-bold">Ракета летит!</span>`;
+                st.className='text-sm';
+            } else {
+                st.innerHTML = `<span class="text-red-500 font-bold">Упала на ${s.crashPoint.toFixed(2)}x</span>`;
+                st.className='text-sm';
+            }
+            const btn = $('#crash-action');
+            const my = s.bets.find(b=>b.mine);
+            if(s.phase==='betting'){
+                if(my){ btn.disabled=true; btn.textContent='Ставка принята ✓'; btn.className='w-full btn-ghost py-4 rounded-xl text-lg opacity-60'; }
+                else { btn.disabled=false; btn.textContent='СДЕЛАТЬ СТАВКУ'; btn.className='w-full btn-primary py-4 rounded-xl text-lg'; btn.onclick=()=>app.placeCrashBet(); }
+            } else if(s.phase==='running'){
+                if(my&&!my.cashedAt){
+                    btn.disabled=false; btn.textContent='ЗАБРАТЬ '+(my.bet*s.multiplier).toFixed(0)+' VC'; btn.className='w-full btn-danger py-4 rounded-xl text-lg'; btn.onclick=()=>Crash.cashout();
+                } else if(my&&my.cashedAt){
+                    btn.disabled=true; btn.textContent='Забрано ✓'; btn.className='w-full btn-ghost py-4 rounded-xl text-lg opacity-60';
+                } else {
+                    btn.disabled=true; btn.textContent='Ставки закрыты'; btn.className='w-full btn-ghost py-4 rounded-xl text-lg opacity-60';
+                }
+            } else {
+                btn.disabled=true;
+                btn.textContent='Ожидание раунда...';
+                btn.className='w-full btn-ghost py-4 rounded-xl text-lg opacity-60';
+            }
+            this.renderBets();
+            const fd = $('#crash-feed');
+            if(fd) fd.innerHTML = s.feed.slice(0,6).map(f=>`<div class="text-[11px] py-1 flex justify-between"><span class="text-slate-300 truncate">${f.name}</span><span class="mono font-bold text-emerald-400">${f.mult.toFixed(2)}x</span></div>`).join('') || '<p class="text-[11px] text-slate-500 text-center py-2">Ждём кэшаутов...</p>';
+            const hr = $('#crash-history');
+            if(hr) hr.innerHTML = this.history.slice(0,10).map(h=>{
+                const color = h.point<2?'bg-red-500/20 text-red-400':h.point<5?'bg-yellow-500/20 text-yellow-400':'bg-emerald-500/20 text-emerald-400';
+                return `<span class="px-2 py-1 rounded-lg text-[11px] mono font-bold ${color}">${h.point.toFixed(2)}x</span>`;
+            }).join('');
+            this.drawGraph();
+        },
+        renderBets(){
+            const el = $('#crash-bets'); if(!el) return;
+            const s = this.state;
+            const active = s.bets.filter(b=>!b.cashedAt);
+            const show = active.slice(-6);
+            el.innerHTML = show.map(b=>`
+                <div class="flex items-center justify-between p-2.5 bg-dark-800 rounded-lg mb-1.5">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-dark-900 shrink-0" style="${b.bot?avatarStyle(b.name):app.user.avatarStyle}">${(b.bot?b.name:app.user.username)[0].toUpperCase()}</div>
+                        <span class="text-xs font-bold truncate ${b.mine?'text-brand-500':''}">${b.bot?b.name:app.user.username}${b.mine?' (вы)':''}</span>
+                    </div>
+                    <span class="text-xs mono font-bold text-slate-300">${fmtInt(b.bet)} VC</span>
+                </div>`).join('') || '<p class="text-xs text-slate-500 text-center py-2">Нет активных ставок</p>';
+        },
+        drawGraph(){
+            const cv = $('#crash-graph'); if(!cv) return;
+            const s = this.state;
+            const dpr = window.devicePixelRatio||1;
+            const W = cv.clientWidth || 300;
+            const H = cv.clientHeight || 230;
+            if (W === 0 || H === 0) return;
+            
+            cv.width = W*dpr; 
+            cv.height = H*dpr;
+            const ctx = cv.getContext('2d'); 
+            ctx.scale(dpr,dpr);
+            ctx.clearRect(0,0,W,H);
+            
+            ctx.strokeStyle='rgba(255,255,255,.05)';
+            for(let i=1;i<5;i++){ ctx.beginPath(); ctx.moveTo(0,H*i/5); ctx.lineTo(W,H*i/5); ctx.stroke(); }
+            ctx.beginPath(); ctx.moveTo(0,H); ctx.lineTo(W,H); ctx.strokeStyle='rgba(0,229,255,.3)'; ctx.stroke();
+            
+            let points=[];
+            if(s.phase==='running'){
+                const t = Date.now()-s.startedAt;
+                const steps = Math.min(200, Math.floor(t/50));
+                for(let i=0;i<=steps;i++) points.push({t:i*50, m:Math.exp(i*50*this.LAMBDA)});
+            } else if(s.phase==='crashed'){
+                const T = s.crashedAt - s.startedAt;
+                const steps = Math.min(200, Math.floor(T/50));
+                for(let i=0;i<=steps;i++) points.push({t:i*50, m:Math.exp(i*50*this.LAMBDA)});
+            }
+            if(points.length<2) return;
+            const maxM = s.phase==='crashed' ? s.crashPoint : (Math.exp(Math.min(40000, points[points.length-1].t)*this.LAMBDA));
+            const Tmax = points[points.length-1].t;
+            const grad = ctx.createLinearGradient(0,0,0,H);
+            grad.addColorStop(0,'rgba(255,46,99,.35)'); grad.addColorStop(1,'rgba(0,229,255,.15)');
+            ctx.beginPath();
+            points.forEach((p,i)=>{
+                const x = Tmax>0 ? (p.t/Tmax)*W : 0;
+                const y = H - (Math.log(p.m)/Math.log(maxM||1.01))*H*0.85 - 5;
+                i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+            });
+            ctx.strokeStyle = s.phase==='crashed'?'#FF2E63':'#00E5FF'; ctx.lineWidth=2.5; ctx.stroke();
+            ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
+            if(s.phase==='running'){
+                const lp = points[points.length-1];
+                const x = Tmax>0?(lp.t/Tmax)*W:0;
+                const y = H - (Math.log(lp.m)/Math.log(maxM||1.01))*H*0.85 - 5;
+                ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fillStyle='#00E5FF'; ctx.fill();
+                ctx.beginPath(); ctx.arc(x,y,9,0,Math.PI*2); ctx.strokeStyle='rgba(0,229,255,.4)'; ctx.stroke();
+            }
+        }
+    };
+
+    app.placeCrashBet = function(){ const bet = +$('#crash-bet').value; Crash.placeBet(bet); };
+    app.renderCrash = function(c){
+        c.innerHTML = `${this.backBtn()}
+            <div class="flex items-center justify-between mb-4"><div class="text-2xl font-black"><i class="fas fa-rocket mr-2 text-brand-500"></i>Crash</div><div class="flex items-center gap-1.5"><span class="text-[10px] font-bold text-red-500 bg-red-500/15 px-2 py-1 rounded-full flex items-center gap-1"><span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></span>LIVE</span></div></div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                <div class="lg:col-span-2">
+                    <div class="panel rounded-2xl p-4 mb-3 relative overflow-hidden">
+                        <div class="crash-canvas-container">
+                            <canvas id="crash-graph"></canvas>
+                            <div class="crash-overlay">
+                                <div id="crash-mult" class="text-5xl sm:text-7xl font-black mono">1.00x</div>
+                                <div id="crash-status" class="text-sm mt-1"></div>
+                            </div>
+                        </div>
+                        <div class="h-1.5 bg-dark-700 rounded-full mt-3 overflow-hidden"><div id="crash-cd" class="h-full bg-gradient-to-r from-brand-500 to-purple-500 rounded-full" style="width:0%"></div></div>
+                    </div>
+                    <div class="glass p-3 rounded-xl mb-3"><div class="text-[10px] text-slate-500 uppercase font-bold mb-2">Последние раунды</div><div class="flex gap-1.5 flex-wrap" id="crash-history"></div></div>
+                    <div class="glass p-4 rounded-2xl space-y-3">
+                        <div class="flex gap-2"><input type="number" id="crash-bet" value="100" class="flex-1 bg-dark-800 border border-slate-700 rounded-xl px-4 py-3 mono font-bold focus:border-brand-500 focus:outline-none">
+                        <button onclick="app.half('crash-bet')" class="px-3 py-2 btn-ghost rounded-xl text-xs font-bold">1/2</button><button onclick="app.max('crash-bet')" class="px-3 py-2 btn-ghost rounded-xl text-xs font-bold">MAX</button></div>
+                        <button id="crash-action" class="w-full btn-primary py-4 rounded-xl text-lg">СДЕЛАТЬ СТАВКУ</button>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass p-4 rounded-2xl mb-3"><div class="text-xs font-bold text-slate-400 uppercase mb-2">Активные игроки</div><div id="crash-bets" class="max-h-44 overflow-y-auto hide-scrollbar"></div></div>
+                    <div class="glass p-4 rounded-2xl"><div class="text-xs font-bold text-slate-400 uppercase mb-2">Последние кэшауты</div><div id="crash-feed" class="max-h-44 overflow-y-auto hide-scrollbar"></div></div>
+                </div>
+            </div>`;
+        Crash.render();
+    };
+
+    setInterval(()=>{ app.updateDailyButton(); const cd=$('#profile-cd'); if(cd&&app.user) cd.textContent=app.dailyCountdown(); }, 1000);
+    window.onload = () => app.init();
+    </script>
+</body>
+</html>
